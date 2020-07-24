@@ -1,11 +1,9 @@
 package supermarket.model
 
-import java.util.HashMap
-
 class Teller(private val catalog: SupermarketCatalog) {
-    private val offers = mutableListOf<Offer>()
+    private val offers = mutableListOf<SingleProductOffer>()
 
-    fun addSpecialOffer(offer: Offer) {
+    fun addSpecialOffer(offer: SingleProductOffer) {
         offers.add(offer)
     }
 

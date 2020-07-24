@@ -1,13 +1,15 @@
 package supermarket.model
 
-sealed class Offer(internal val product: Product) {
+sealed class Offer {
     abstract fun getDiscount(
         shoppingCart: ShoppingCart,
         catalog: SupermarketCatalog
     ): Discount?
 }
 
-class PercentageOffer(product: Product, val percentOff: Double) : Offer(product) {
+abstract class SingleProductOffer(val product: Product): Offer()
+
+class PercentageOffer(product: Product, val percentOff: Double) : SingleProductOffer(product) {
     override fun getDiscount(
         shoppingCart: ShoppingCart,
         catalog: SupermarketCatalog
@@ -19,7 +21,7 @@ class PercentageOffer(product: Product, val percentOff: Double) : Offer(product)
     }
 }
 
-class ThreeForTwoOffer(product: Product) : Offer(product) {
+class ThreeForTwoOffer(product: Product) : SingleProductOffer(product) {
     override fun getDiscount(
         shoppingCart: ShoppingCart,
         catalog: SupermarketCatalog
@@ -29,7 +31,7 @@ class ThreeForTwoOffer(product: Product) : Offer(product) {
 }
 
 class QuantityForAmountOffer(product: Product, private val discountQuantity: Int, private val price: Double) :
-    Offer(product) {
+    SingleProductOffer(product) {
     override fun getDiscount(
         shoppingCart: ShoppingCart,
         catalog: SupermarketCatalog

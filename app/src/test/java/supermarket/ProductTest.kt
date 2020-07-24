@@ -28,7 +28,7 @@ class ProductTest {
 
         val receipt = teller.checksOutArticlesFrom(cart)
         val discounts = receipt.getDiscounts()
-        assertThat(discounts.size, `is`(3))
+        assertThat(discounts.size, `is`(1))
     }
 
     @Test
@@ -38,6 +38,6 @@ class ProductTest {
         val receipt = teller.checksOutArticlesFrom(cart)
         val discounts = receipt.getDiscounts()
         assertThat(discounts.size, `is`(1))
-        assertThat(discounts[0].discountAmount, `is`(2.0))
+        assertThat(discounts[0].discountAmount, `is`(1.99))
     }
 }

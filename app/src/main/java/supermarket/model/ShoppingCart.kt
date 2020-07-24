@@ -20,7 +20,7 @@ class ShoppingCart {
         }
     }
 
-    internal fun handleOffers(receipt: Receipt, offers: List<Offer>, catalog: SupermarketCatalog) {
+    internal fun handleOffers(receipt: Receipt, offers: List<SingleProductOffer>, catalog: SupermarketCatalog) {
         offers.forEach { offer ->
             offer.getDiscount(this, catalog)?.let {
                 receipt.addDiscount(it)
