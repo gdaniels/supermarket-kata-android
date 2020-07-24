@@ -3,8 +3,8 @@ package supermarket
 import org.junit.Test
 import supermarket.TestUtils.apples
 import supermarket.TestUtils.toothbrush
+import supermarket.model.PercentageOffer
 import supermarket.model.ShoppingCart
-import supermarket.model.SpecialOfferType
 import supermarket.model.Teller
 
 class SupermarketTest {
@@ -19,7 +19,7 @@ class SupermarketTest {
         cart.addItemQuantity(toothbrush, 1.0)
 
         val teller = Teller(catalog)
-        teller.addSpecialOffer(SpecialOfferType.TenPercentDiscount, toothbrush, 10.0)
+        teller.addSpecialOffer(PercentageOffer(toothbrush, 10.0))
 
         val receipt = teller.checksOutArticlesFrom(cart)
 
