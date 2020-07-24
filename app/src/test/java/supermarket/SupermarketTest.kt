@@ -1,8 +1,8 @@
 package supermarket
 
 import org.junit.Test
-import supermarket.model.Product
-import supermarket.model.ProductUnit
+import supermarket.TestUtils.apples
+import supermarket.TestUtils.toothbrush
 import supermarket.model.ShoppingCart
 import supermarket.model.SpecialOfferType
 import supermarket.model.Teller
@@ -12,10 +12,7 @@ class SupermarketTest {
     @Test
     fun testSomething() {
         val catalog = FakeCatalog()
-        val toothbrush = Product("toothbrush", ProductUnit.Each)
-        catalog.addProduct(toothbrush, 0.99)
-        val apples = Product("apples", ProductUnit.Kilo)
-        catalog.addProduct(apples, 1.99)
+        TestUtils.setupCatalog(catalog)
 
         val cart = ShoppingCart()
         cart.addItemQuantity(apples, 2.5)
