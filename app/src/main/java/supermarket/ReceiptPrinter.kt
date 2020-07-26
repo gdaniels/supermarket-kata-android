@@ -10,14 +10,13 @@ class ReceiptPrinter @JvmOverloads constructor(private val columns: Int = 40) {
 
     private fun Discount.descriptionString() = "$description (${product.name})"
     private fun Discount.priceString() = priceAsString(-discountAmount)
+    private fun Discount.receiptLine() = getLRString(descriptionString(), priceString())
 
     fun printReceipt(receipt: Receipt): String {
         val result = StringBuilder()
-        for (item in receipt.getItems()) {
-            result.append(getLineForItem(item))
-        }
-        for (discount in receipt.getDiscounts()) {
-            result.append(getLRString(discount.descriptionString(), discount.priceString()))
+        with(receipt) {
+            getItems().forEach { result.append(getLineForItem(it)) }
+            getDiscounts().forEach { result.append(it.receiptLine()) }
         }
         result.append("\n")
         result.append(getLRString("Total: ", priceAsString(receipt.totalPrice)))
@@ -25,12 +24,14 @@ class ReceiptPrinter @JvmOverloads constructor(private val columns: Int = 40) {
     }
 
     private fun getLineForItem(item: ReceiptItem): String {
-        var line = getLRString(item.product.name, priceAsString(item.totalPrice))
+        with(item) {
+            var line = getLRString(product.name, priceAsString(totalPrice))
 
-        if (item.quantity != 1.0) {
-            line += "  ${priceAsString(item.price)} * ${presentQuantity(item)}\n"
+            if (quantity != 1.0) {
+                line += "  ${priceAsString(price)} * ${presentQuantity(item)}\n"
+            }
+            return line
         }
-        return line
     }
 
     private fun priceAsString(price: Double) = String.format(Locale.UK, "%.2f", price)
@@ -40,10 +41,11 @@ class ReceiptPrinter @JvmOverloads constructor(private val columns: Int = 40) {
         return left + " ".repeat(whitespaceSize) + right + "\n"
     }
 
-    private fun presentQuantity(item: ReceiptItem): String {
-        return if (ProductUnit.Each == item.product.unit)
-            String.format("%x", item.quantity.toInt())
-        else
-            String.format(Locale.UK, "%.3f", item.quantity)
-    }
+    private fun presentQuantity(item: ReceiptItem): String =
+        item.run {
+            if (ProductUnit.Each == product.unit)
+                String.format("%x", quantity.toInt())
+            else
+                String.format(Locale.UK, "%.3f", quantity)
+        }
 }
