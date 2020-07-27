@@ -1,5 +1,7 @@
 package supermarket.model
 
+import java.lang.IllegalArgumentException
+
 sealed class Offer {
     abstract fun getDiscount(
         shoppingCart: ShoppingCart,
@@ -7,7 +9,34 @@ sealed class Offer {
     ): Discount?
 }
 
-abstract class SingleProductOffer(val product: Product): Offer()
+class BundleOffer(
+    private val description: String,
+    private val products: List<Product>,
+    private val discountPrice: Double
+) : Offer()
+{
+    init {
+        if (products.isEmpty()) throw IllegalArgumentException("Must have some products in bundle")
+    }
+
+    override fun getDiscount(shoppingCart: ShoppingCart, catalog: SupermarketCatalog): Discount? {
+        val normalBundlePrice = products.fold(0.0, { total, product ->
+            total + catalog.getUnitPrice(product)
+        })
+        val discountPerBundle = normalBundlePrice - discountPrice
+
+        shoppingCart.getItems().fold(products.toSet(), { unmarked, productQuantity ->
+            val nextList = unmarked.minus(productQuantity.product)
+            if (nextList.isEmpty()) {
+                return Discount(description, discountPerBundle)
+            }
+            nextList
+        })
+        return null
+    }
+}
+
+abstract class SingleProductOffer(val product: Product) : Offer()
 
 class PercentageOffer(product: Product, val percentOff: Double) : SingleProductOffer(product) {
     override fun getDiscount(
@@ -17,16 +46,29 @@ class PercentageOffer(product: Product, val percentOff: Double) : SingleProductO
         val quantityOf = shoppingCart.quantityOf(product)?.toInt() ?: return null
 
         val unitPrice = catalog.getUnitPrice(product)
-        return Discount(product, "$percentOff% off", quantityOf * unitPrice * percentOff / 100.0)
+        return Discount("$percentOff% off (${product.name})", quantityOf * unitPrice * percentOff / 100.0)
     }
 }
 
 class ThreeForTwoOffer(product: Product) : SingleProductOffer(product) {
+    init {
+        if (product.unit != ProductUnit.Each) {
+            throw IllegalArgumentException("Can only use ThreeForTwo with discrete items")
+        }
+    }
     override fun getDiscount(
         shoppingCart: ShoppingCart,
         catalog: SupermarketCatalog
     ): Discount? {
-        TODO("Not yet implemented")
+        val numInCart = shoppingCart.getItems().filter { it.product == product }.fold(0, { total, quant ->
+            total + quant.quantity.toInt()
+        })
+        val numThrees = numInCart / 3
+        if (numThrees < 1) return null
+        val normalPrice = catalog.getUnitPrice(product)
+        val discountAmount = normalPrice * numThrees // One off per three
+        val multiplierString = if (numThrees > 1) { " x${numThrees.toInt()}" } else { "" }
+        return Discount("3 for 2 (${product.name})$multiplierString", discountAmount)
     }
 }
 
@@ -44,7 +86,7 @@ class QuantityForAmountOffer(product: Product, private val discountQuantity: Int
         val unitPrice = catalog.getUnitPrice(product)
         val discounted = price * (quantityInt / discountQuantity) + (quantityInt % discountQuantity) * unitPrice
         val normal = quantityInt * unitPrice
-        return Discount(product, "$discountQuantity for \$$price", normal - discounted)
+        return Discount("$discountQuantity for \$$price (${product.name})", normal - discounted)
     }
 }
 
