@@ -25,7 +25,7 @@ class ProductTest {
     }
 
     @Test
-    fun `something or other`() {
+    fun `toothbrush discount is recognized`() {
         cart.addItemQuantity(toothbrush, 1.0)
 
         teller.addSpecialOffer(PercentageOffer(toothbrush, 10.0))
@@ -46,15 +46,28 @@ class ProductTest {
     }
 
     @Test
-    fun bundle() {
+    fun `single bundle`() {
         cart.addItemQuantity(toothbrush, 1.0)
         cart.addItemQuantity(toothpaste, 1.0)
 
-        teller.addSpecialOffer(BundleOffer("Tooth bundle", listOf(toothbrush, toothpaste), 3.00))
+        teller.addSpecialOffer(BundleOffer("Dental bundle", listOf(toothbrush, toothpaste), 3.00))
         val receipt = teller.checksOutArticlesFrom(cart)
         val discounts = receipt.getDiscounts()
         assertThat(discounts.size, Is(1))
         assertThat(discounts[0].discountAmount, Is(closeTo(1.41, 0.00001)))
+        println(ReceiptPrinter().printReceipt(receipt))
+    }
+
+    @Test
+    fun `double bundle`() {
+        cart.addItemQuantity(toothbrush, 3.0)
+        cart.addItemQuantity(toothpaste, 2.0)
+
+        teller.addSpecialOffer(BundleOffer("Dental bundle", listOf(toothbrush, toothpaste), 3.00))
+        val receipt = teller.checksOutArticlesFrom(cart)
+        val discounts = receipt.getDiscounts()
+        assertThat(discounts.size, Is(1))
+        assertThat(discounts[0].discountAmount, Is(closeTo(2.82, 0.00001)))
         println(ReceiptPrinter().printReceipt(receipt))
     }
 
