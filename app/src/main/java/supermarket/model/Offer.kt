@@ -67,10 +67,7 @@ class ThreeForTwoOffer(product: Product) : SingleProductOffer(product) {
         shoppingCart: ShoppingCart,
         catalog: SupermarketCatalog
     ): Discount? {
-        val numInCart = shoppingCart.getItems().filter { it.product == product }.fold(0, { total, quant ->
-            total + quant.quantity.toInt()
-        })
-        val numThrees = numInCart / 3
+        val numThrees = shoppingCart.quantityOf(product)?.div(3)?.toInt() ?: 0
         if (numThrees < 1) return null
         val normalPrice = catalog.getUnitPrice(product)
         val discountAmount = normalPrice * numThrees // One off per three
