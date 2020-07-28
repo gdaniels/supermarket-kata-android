@@ -6,71 +6,46 @@ import supermarket.model.Receipt
 import supermarket.model.ReceiptItem
 import java.util.*
 
-// TODO: StringBuilder subclass that appends right to left with the correct amount of whitespace
-//      - Line breaks on items
 class ReceiptPrinter @JvmOverloads constructor(private val columns: Int = 40) {
+
+    private fun Discount.descriptionString() = "$description (${product.name})"
+    private fun Discount.priceString() = priceAsString(-discountAmount)
+    private fun Discount.receiptLine() = getLRString(descriptionString(), priceString())
 
     fun printReceipt(receipt: Receipt): String {
         val result = StringBuilder()
-        for (item in receipt.getItems()) {
-            addItemLine(item, result)
+        with(receipt) {
+            getItems().forEach { result.append(getLineForItem(it)) }
+            getDiscounts().forEach { result.append(it.receiptLine()) }
         }
-        for (discount in receipt.getDiscounts()) {
-            addDiscountLine(discount, result)
-        }
-        addTotalLine(result, receipt)
+        result.append("\n")
+        result.append(getLRString("Total: ", priceAsString(receipt.totalPrice)))
         return result.toString()
     }
 
-    private fun addTotalLine(result: StringBuilder, receipt: Receipt) {
-        result.append("\n")
-        val pricePresentation = String.format(Locale.UK, "%.2f", receipt.totalPrice as Double)
-        val total = "Total: "
-        val whitespace = getWhitespace(this.columns - total.length - pricePresentation.length)
-        result.append(total).append(whitespace).append(pricePresentation)
-    }
+    private fun getLineForItem(item: ReceiptItem): String {
+        with(item) {
+            var line = getLRString(product.name, priceAsString(totalPrice))
 
-    private fun addDiscountLine(discount: Discount, result: StringBuilder) {
-        val productPresentation = discount.product.name
-        val pricePresentation = String.format(Locale.UK, "%.2f", discount.discountAmount)
-        val description = discount.description
-        result.append(description)
-        result.append("(")
-        result.append(productPresentation)
-        result.append(")")
-        result.append(getWhitespace(this.columns - 3 - productPresentation.length - description.length - pricePresentation.length))
-        result.append("-")
-        result.append(pricePresentation)
-        result.append("\n")
-    }
-
-    private fun addItemLine(item: ReceiptItem, result: StringBuilder) {
-        val price = String.format(Locale.UK, "%.2f", item.totalPrice)
-        val quantity = presentQuantity(item)
-        val name = item.product.name
-        val unitPrice = String.format(Locale.UK, "%.2f", item.price)
-
-        val whitespaceSize = this.columns - name.length - price.length
-        var line = name + getWhitespace(whitespaceSize) + price + "\n"
-
-        if (item.quantity != 1.0) {
-            line += "  $unitPrice * $quantity\n"
+            if (quantity != 1.0) {
+                line += "  ${priceAsString(price)} * ${presentQuantity(item)}\n"
+            }
+            return line
         }
-        result.append(line)
     }
 
-    private fun presentQuantity(item: ReceiptItem): String {
-        return if (ProductUnit.Each.equals(item.product.unit))
-            String.format("%x", item.quantity.toInt())
-        else
-            String.format(Locale.UK, "%.3f", item.quantity)
+    private fun priceAsString(price: Double) = String.format(Locale.UK, "%.2f", price)
+
+    private fun getLRString(left: String, right: String): String {
+        val whitespaceSize = this.columns - left.length - right.length
+        return left + " ".repeat(whitespaceSize) + right + "\n"
     }
 
-    private fun getWhitespace(whitespaceSize: Int): String {
-        val whitespace = StringBuilder()
-        for (i in 0 until whitespaceSize) {
-            whitespace.append(" ")
+    private fun presentQuantity(item: ReceiptItem): String =
+        item.run {
+            if (ProductUnit.Each == product.unit)
+                String.format("%x", quantity.toInt())
+            else
+                String.format(Locale.UK, "%.3f", quantity)
         }
-        return whitespace.toString()
-    }
 }
