@@ -14,7 +14,7 @@ class PercentageOffer(product: Product, val percentOff: Double) : SingleProductO
         shoppingCart: ShoppingCart,
         catalog: SupermarketCatalog
     ): Discount? {
-        val quantityOf = shoppingCart.quantityOf(product)?.toInt() ?: return null
+        val quantityOf = shoppingCart.quantityOf(product) ?: return null
 
         val unitPrice = catalog.getUnitPrice(product)
         return Discount(product, "$percentOff% off", quantityOf * unitPrice * percentOff / 100.0)
