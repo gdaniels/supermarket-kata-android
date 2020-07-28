@@ -37,7 +37,7 @@ class ProductTest {
 
     @Test
     fun applesDiscount() {
-        cart.addItemQuantity(apples, 2.5)
+        cart.addItemQuantity(apples, 2.0)
         teller.addSpecialOffer(PercentageOffer(apples, 50.0))
         val receipt = teller.checksOutArticlesFrom(cart)
         val discounts = receipt.getDiscounts()
